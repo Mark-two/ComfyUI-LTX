@@ -71,13 +71,17 @@ LatentUpscaler 2x → VAEDecode → 视频+音频输出
 **关键：提示词必须与输入图片内容匹配，模型才能正确保留原图特征。**
 
 已生成的示例：
-- `output/ltx-2.3/i2v_00003-audio.mp4` — 人像图生视频，提示词明确引用图片中的人物
+- `output/ltx-2.3/i2v_00003-audio.mp4` — 人像图生视频（浏览器运行），提示词明确引用图片中的人物
+- `output/i2v_portrait_cli_00001-audio.mp4` — 人像图生视频（CLI运行），与浏览器版效果一致
 
 ### 命令行
 
 ```bash
-python run_i2v.py -i 输入图片.jpg -p "描述人物的提示词" -o 输出文件名 --width 704 --height 1280
+python run_i2v.py -i 输入图片.jpg -p "描述人物的提示词，必须与图片内容匹配" -o 输出文件名
 ```
+
+**提示词注意事项：** 提示词必须描述图片中的实际内容，模型才能保留原图特征。
+最佳实践：在提示词中加入 `"The same person as in the input image"` 或类似表述。
 
 ### 参数
 
@@ -87,10 +91,18 @@ python run_i2v.py -i 输入图片.jpg -p "描述人物的提示词" -o 输出文
 | `-p` | 正向提示词（必填） | — |
 | `-n` | 负向提示词 | 质量过滤词 |
 | `-o` | 输出前缀 | `LTX23i2v` |
-| `--width` `--height` | 图片目标尺寸 | 704×1280 |
-| `--frames` | 帧数 | 97 |
-| `--steps` | 采样步数 | 20 |
+| `--frames` | 帧数 | 121 |
 | `--seed` | 种子（-1随机） | -1 |
+
+### 示例
+
+```bash
+python run_i2v.py \
+  -i /path/to/portrait.jpg \
+  -p "A cinematic medium shot of a beautiful young woman with long brown hair looking at the camera with a gentle smile. The same person as in the input image. She slowly blinks and tilts her head slightly." \
+  -o portrait_i2v \
+  --seed 7777
+```
 
 ### 管线架构
 
