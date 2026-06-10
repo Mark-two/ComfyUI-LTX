@@ -62,6 +62,56 @@ LatentUpscaler 2x → VAEDecode → 视频+音频输出
 
 ---
 
+## 📸 图生视频 (I2V)
+
+### 浏览器操作（推荐）
+
+在 ComfyUI 浏览器中加载 `blueprints/LTX-2.3-I2V.json`，拖入图片，修改提示词使之与图片内容匹配，即可生成。
+
+**关键：提示词必须与输入图片内容匹配，模型才能正确保留原图特征。**
+
+已生成的示例：
+- `output/ltx-2.3/i2v_00003-audio.mp4` — 人像图生视频，提示词明确引用图片中的人物
+
+### 命令行
+
+```bash
+python run_i2v.py -i 输入图片.jpg -p "描述人物的提示词" -o 输出文件名 --width 704 --height 1280
+```
+
+### 参数
+
+| 参数 | 说明 | 默认 |
+|------|------|------|
+| `-i` | 输入图片路径（必填） | — |
+| `-p` | 正向提示词（必填） | — |
+| `-n` | 负向提示词 | 质量过滤词 |
+| `-o` | 输出前缀 | `LTX23i2v` |
+| `--width` `--height` | 图片目标尺寸 | 704×1280 |
+| `--frames` | 帧数 | 97 |
+| `--steps` | 采样步数 | 20 |
+| `--seed` | 种子（-1随机） | -1 |
+
+### 管线架构
+
+两阶段 I2V 管线：
+
+```
+LoadImage → ImageResizeKJv2(704×1280, crop) → LTXVPreprocess
+                                                      ↓
+EmptyImage(704×1280) → ImageScaleBy(0.5) → GetImageSize → EmptyLTXVLatentVideo
+                                                      ↓
+Checkpoint(fp8) → [VAE] → LTXVImgToVideoInplace(图片注入潜空间)
+                                                      ↓
+Camera LoRA → CFGGuider(CFG=4.0) → Stage1 采样
+                                                      ↓
+Split AV → LatentUpscaler(2x) → 再注入图片 → Distilled+Detailer LoRA → Stage2(CFG=1.0)
+                                                      ↓
+VAEDecodeTiled → 视频+音频输出
+```
+
+---
+
 <div align="center">
 
 # ComfyUI
