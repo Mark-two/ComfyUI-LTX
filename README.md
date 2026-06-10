@@ -1,5 +1,69 @@
 <div align="center">
 
+# ComfyUI-LTX
+
+> **基于 ComfyUI 的 LTX-2.3 视频生成工具包**
+
+使用命令行从 LTX-2.3 模型生成带音频的 HD 视频，精确复刻浏览器版的两阶段采样管线。
+
+---
+
+## 🚀 快速开始
+
+```bash
+python run_ltx23.py -p "你的视频描述" -o 输出文件名 --width 768 --height 512
+```
+
+输出在 `output/` 目录，取 `_00002-audio.mp4` 文件即可。
+
+### 参数
+
+| 参数 | 说明 | 默认 |
+|------|------|------|
+| `-p` | 正向提示词（必填） | — |
+| `-n` | 负向提示词 | 质量过滤词 |
+| `-o` | 输出前缀 | `LTX23` |
+| `--width` `--height` | 潜空间尺寸 | 960×544 |
+| `--frames` | 帧数 | 121 |
+| `--seed` | 种子（-1随机） | -1 |
+
+### 示例
+
+```bash
+# 山间小屋
+python run_ltx23.py -p "A wide static shot of a remote cabin in the mountains at night. Warm amber light glows from two small windows." -o cabin --width 768 --height 512 --seed 2024
+
+# 金色日落山脉
+python run_ltx23.py -p "A cinematic drone shot flying over misty mountains at golden hour." -o mountains --width 768 --height 512 --seed 7777
+```
+
+## 🏗 管线架构
+
+两阶段采样流程：
+
+```
+图像代理 → ImageScaleBy(0.5) → EmptyLTXVLatentVideo
+    ↓
+Distilled LoRA → Detailer LoRA → Stage1 (CFG=4.0)
+    ↓
+CropGuides → Camera LoRA → Stage2 (CFG=1.0, ManualSigmas)
+    ↓
+LatentUpscaler 2x → VAEDecode → 视频+音频输出
+```
+
+- **两阶段采样** — 高 CFG 粗采 + 低 CFG 精修
+- **2x 上采样** — 768×512 → 1536×1024
+- **LoRA 增强** — Detailer + Distilled + Camera Control
+- **同步音频** — LTX-2.3 原生生成
+
+## 📁 工作流蓝本
+
+`blueprints/` 目录包含多个 LTX-2.3 工作流 JSON，可在浏览器中加载使用。
+
+---
+
+<div align="center">
+
 # ComfyUI
 **The most powerful and modular AI engine for content creation.**
 
